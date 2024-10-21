@@ -1,0 +1,185 @@
+---
+title: "Introduction to programming in R"
+author: "Julia Rühle & Leone Albinati"
+date: "25th-27th of November 2024"
+output:
+  html_document:
+    theme: cerulean
+    df_print: paged
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: no
+    highlight: tango
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+knitr::opts_knit$set(root.dir = 'Y:/lalbinati/Rcourse_material_VHIO/')
+
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(patchwork)
+
+```
+
+# Course organization
+
+> **Day 1 (27th of November):** 
+>
+* Introduction to R and Rstudio 
+* R basics: objects, paths and functions
+* The basis of reproducibility: the R script 
+* Data types in R
+* Data structures: vectors, matrices and dataframes
+* Read and write files
+* Libraries and packages
+
+# Data types in R
+
+Every object in R has a data type
+
+- Numeric (integer or double): any number
+
+- Character: text objects
+
+- Logical: TRUE or FALSE
+
+To check what is the data type of an object, we can use the function **mode()**
+
+```{r}
+# let's create different objects and check for their type
+type1 <- 2
+type2 <- "banana"
+type3 <- "5"
+type4 <- TRUE
+
+
+# Can we multiply type1 and type3?
+```
+
+Checking for data types is important, especially when you will work with more complex data structures
+
+# Data structures
+
+The main data structures in R are:
+
+- Vectors 
+
+- Matrices
+
+- Data Frames
+
+There are also many other data structures (like factors - except if we need it for ggplot - and lists) that will not be discussed in this course.
+
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+
+> **Important note**
+>
+In this section, we will describe the main data structures used in R and we will show you how to handle and manipulate these structures using **basic R language**. As of today, an amazing set of packages to work and manipulate data structures has been developed, called **tidyverse**. Many codes are written using tidyverse and often ChatGPT and other language models suggest codes using tidyverse. Moreover, the well known package **ggplot** (the reason many of you are here?) is developed inside tidyverse. The way tidyverse handles data structures is different from how we do it with basic R. Still, **knowing basic R is important** (to properly know the language and to understand other people's scripts); therefore we decided to dedicate this session to learn how to handle data structures with basic R, and from tomorrow on we'll move to tidyverse.
+
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+
+## Vectors
+
+Vectors are one-dimension sequences of data elements of the **same type**.
+
+### Creating a vector
+
+- To create a vector, we use the function **c()** - combine.
+- The elements inside the c() have to be separated by commas.
+
+```{r, include=TRUE, eval=FALSE}
+# let's create a vector of numbers
+my_first_vec <- c(1,3,5,7,9)
+mode(my_first_vec)
+
+# for numerical intervals, we can create a vector using the : (colon)
+# the interval includes the extremes!
+interval_vec <- 1:5
+
+# let's create a character vector - each of the character elements has to be included in quotes!
+# spaces between commas do not change the meaning
+character_vec <- c("lion", "zebra", "elephant")
+mode(character_vec)
+
+# what happens if we don't put the quotes?
+character_vec2 <- c(lion, zebra, elephant)
+
+# what happens if we create a "mixed" vector?
+mixed_vec <- c("lion", TRUE, 1)
+mode(mixed_vec)
+
+```
+
+
+- tip1: to add the quotes you can select the elements and then press the quote key
+
+- tip2: single quotes can also be used, but in R is preferable to use the double quotes
+
+###  Combining vectors
+
+Different vectors can be combined
+
+```{r, include=TRUE, eval=FALSE}
+# let's create the vector planets
+gas_planets <- c("Jupiter", "Saturn", "Uranus", "Neptune")
+terrestrial_planets <- c("Mercury", "Venus", "Earth", "Mars")
+all_planets <- c(terrestrial_planets,gas_planets)
+
+# we can also add single elements
+really_all_planets <- c(all_planets,"Pluto")
+
+# how many elements are there in the vector all_planets?
+length(all_planets)
+```
+
+
+### Vector manipulation
+
+Learning vector manipulation is essential in R because it forms the foundation for handling more complex data structures, such as data frames and matrices, which is crucial for data analysis and visualization.
+
+- We can name vectors - might remove this one tbh
+
+```{r, include=TRUE, eval=FALSE}
+# let's create a vector of RNA counts
+gene_counts <- c(125,36,42)
+
+# let's name each element with the type of gene it belongs to
+gene_types <- c("protein_coding","lncRNA","pseudogene")
+
+# let's assign the gene type as names of the vector
+names(gene_counts) <- gene_types
+gene_counts
+
+# it did not change mode - the names are not part of the vector
+mode(gene_counts)
+```
+
+- We can **extract elements** from a vector using **their position (index)** inside the vector
+
+
+
+
+
+
+
+
