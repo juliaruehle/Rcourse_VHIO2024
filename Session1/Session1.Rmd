@@ -4,17 +4,17 @@ author: "Julia Rühle & Leone Albinati"
 date: "25th-27th of November 2024"
 output:
   html_document:
-    #theme: "cosmo"
-    theme: "cerulean"
-    #highlight: github  
+    theme: cerulean
     df_print: paged
     number_sections: yes
     toc: yes
-    #code_folding: hide
     toc_depth: 4
-    toc_float: 
-      collapsed: false
+    toc_float:
+      collapsed: no
     highlight: tango
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
 editor_options:
   chunk_output_type: console
 ---
@@ -340,10 +340,20 @@ pi_three_digits <- round(x=3.14159265358,digits=3)
 pi_three_digits / 10
 ```
 
-In R, everything that is followed by **#** will not be interpreted by the console
+In R, everything that is followed by **#** will not be interpreted by the console. We can use it to comment the script
 
 
+# Quick hands-on
 
+1. Check in which **directory** you are, if you are not in the Rcourse_2024 go there.
+2. Create a **new script** called exercise1.R
+3. **Comment** the first line writing your name and the date.
+4. Create an object called **obj1**, containing the value 36.
+5. Create a second object called **obj2**, containing the values 7.
+6. Calculate the **square root** (google the command to do it!) of obj1, then **re-assing** the output to obj1.
+7. **Print** obj1 in the console.
+8. Create a third object (obj3) containing the value of the division between obj1 and obj2.
+9. **Save** the script.
 
 
 
