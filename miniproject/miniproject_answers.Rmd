@@ -1,0 +1,469 @@
+---
+title: "Introduction to programming in R"
+author: "Julia Rühle & Leone Albinati"
+date: "25th-27th of November 2024"
+output:
+  html_document:
+    theme: cerulean
+    df_print: paged
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: no
+    highlight: tango
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+knitr::opts_knit$set(root.dir = '/users/rbeekman/lalbinati/Rcourse_material_VHIO/mini_project_final/')
+
+rm(list=ls())
+library(tidyverse)
+library(ggpubr)
+
+```
+
+# Project Overview
+In this mini-project, you will analyze real data coming from this paper
+https://www.nejm.org/doi/full/10.1056/NEJMoa1505917
+<br><br>
+
+![](paper.png)
+
+<br><br>
+ 
+We have two main datasets: one **"clinical"** and one **"molecular"** 
+
+- The first has information about age, gender, tumor size and other variables. 
+
+- The second dataset is coming from an RNAseq experiment, for which Fold Change and p values have already been calculated. 
+
+In this small project you will apply your skills in data manipulation and in plotting, following the basics of data visualization that we learned in the previous session. If you can, comment every line explaining what you are doing. <br><br>
+When **plotting**, we will always ask you to think about what is the best type of plot to visualize your data, focusing on the most standard ones.
+
+- **Scatterplot** (geom_point() function in ggplot)
+- **Boxplot** (geom_boxplot() function in ggplot)
+- **Barplot** (geom_bar() or geom_col() function in ggplot)
+- **Histograms** (geom_histogram() function in ggplot)
+
+<br><br>
+We will start from the clinical dataset to then move to the molecular one.
+
+# Part 1: the clinical dataset
+Let's start by **creating a new directory** in the Rcourse_2024 called mini_project.
+If you have not done it yet, download in this folder the two files we are going to use (ClinicalDataNoNA.csv and RNAseq.csv). 
+
+- 1. Set the working directory in the newly created folder
+- 2. Load the libraries we need (tidyverse)
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r, eval=FALSE, include=TRUE}
+# 1. set the working directory to the newly created folder
+setwd("Desktop/Rcourse_2024/mini_project/") # here you have to put your path to the folder
+
+# 2. load the tidyverse library
+library(tidyverse)
+```
+</details>
+</div>
+
+## Exercise 1: load and explore the dataset 
+When approaching a new dataset, it is important to check its content to become familiar with the different variables.
+
+- 1. Load the dataset ("ClinicalDataNoNA.csv") and assign to an object called **clinical**: when reading it, **careful with the column names and the extension, comma separated value (csv)**. 
+- 2. How many rows (**observations**) and columns (**variables**) are there in the dataset?
+- 3. Print the **first** and **last rows** of the dataset.
+- 4. Print the **column names** of the dataset.
+- 5. How many **Male and Female** patients are in the dataset (remember group_by and summarise?).
+- 6. Which different **types of tumor** are in the dataset and how many observation for each type?
+- 7. What is the **maximum size** of the largest part of the tumor?
+- 8. What is the **average age at diagnosis**? 
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r, eval=TRUE, include=TRUE,results=FALSE}
+# 1. read the dataset 
+clinical <- read.table(file = "ClinicalDataNoNA.csv", # name of the file
+                       sep = ",", # the separator is a comma (the file is a .csv)
+                       header = T) # it has column names
+
+# 2. How many rows and columns in the dataset
+dim(clinical) # gives both dimensions together
+nrow(clinical) # gives only the number of rows
+ncol(clinical) # gives only the number of columns
+
+# 3. Print first and last rows
+head(clinical) # prints the first 6 rows
+tail(clinical) # prints the last 6 rows
+
+# 4. Print the column names
+colnames(clinical)
+
+# 5. How many male and female
+# We can group by the Gender and then count the numbers (with the function n())
+clinical %>% group_by(Gender) %>% summarise(count=n())
+
+# 6. How many tumor types - same as before
+clinical %>% group_by(tumor_type) %>% summarise(count=n())
+
+# 7. Maximum size of the tumor
+max(clinical$tumor_size_largest)
+
+# 8. Average age at diagnosis
+mean(clinical$age_at_diagnosis)
+
+```
+</details>
+</div>
+
+
+## Exercise 2: cleaning the dataset
+- 1. We've seen that some tumors are described as **Unclassified**; we are not interesting in this category and we want to remove them. Assign to a new object called **classified** the data frame without the unclassified tumors.
+- 2. Moreover, we will not work on all the variables for now, and we want to remove the ones we are not using to have a tidier dataset. Create a new object called **classified_tidy** that stores only the columns tumor_type, age_at_diagnosis, Gender, tumor_size_largest, tumor_size_smallest.
+- 3. Write this newly created data frame to a file named "clinical_data_tidy.txt". Make the file tab-separated ("'\t'" the symbol for tab seprated files), include the column names but not the rownames, don't put quotes on the characters.
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r,include=TRUE,eval=TRUE,results=FALSE}
+# 1. Remove the uncalssified tumors from the dataset
+# We can use the filter() function
+classified <- clinical %>% filter(tumor_type!="Unclassified_Papillary_RCC")
+
+# 2. Remove "useless" variables to tidy the dataframe
+# We can use the select() function and type the name of the columns we want to keep
+classified_tidy <- classified %>% select(tumor_type, age_at_diagnosis, Gender, tumor_size_largest, tumor_size_smallest)
+
+# 3. Write the table
+write.table(x = classified_tidy, # object to save
+            file = "clinical_data_tidy.txt", # name to save
+            quote = F,  # do not include characters in quotes
+            sep = "\t", # tab separated
+            row.names = FALSE, # no row names
+            col.names = TRUE) # yes column names
+```
+</details>
+</div>
+
+
+## Exercise 3: type and size
+Now let's start exploring the **relationship between different variables**. <br><br>
+Let's start with largest tumor size: is there a difference between type1 and type2? We have one **categorical** (tumor_type) and one **numerical** (tumor_size_largest) variable. <br><br>
+
+- 1. What is a possible plot to visualize this type of data? 
+- 2. Plot the data, on the **x axis the tumor_type** and on the **y axis the age**. Remember the different arguments for ggplot(). From the plot, which tumor type tends to be bigger?
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r,include=TRUE,eval=TRUE}
+# 1. Relationship between numerical and categorical variables can be easily visualized with a boxplot. the function for ggplot is geom_boxplot().
+
+# 2. Let's plot the boxplot, filling for the tumor_type just adds the color
+ggplot(classified_tidy, aes(x = tumor_type, y = tumor_size_largest, fill=tumor_type)) +
+  geom_boxplot()
+```
+</details>
+</div>
+
+
+##  Exercise 3.1: statistical significance
+We see that there is a difference between the two tumor types, but is it statistically significant? We can check using a **t-test**. However, t-test requires the data to be **normally distributed**. Let's see how to check if the age_at_diagnosis is normally distributed in the two tumor types.
+
+- 1. Create an object called **type1** selecting only the rows that belong to type1 tumors.
+- 2. Do the same for type2 tumors and call the object **type2**.
+- 3. We want to check for **distribution** of the data. What is a possible plot to visualize this type of data? 
+- 4. Plot the distribution of the **tumor_size_largest** variable for the two tumor types. Remember: to plot histograms use only the x inside the aesthetics, because the y will be the distribution.
+- 5. Even if not completely clear, let's consider this distribution as "normal" (if you want to be more precise, google **"shapiro test in R"**). Now we can compute the p-value using the t test - google/ask chatgpt the function to do so. Is the difference statistically significant?  
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r,include=TRUE,eval=TRUE}
+# 1 and 2. Create type1 and type2 objects filtering the rows
+type1 <- classified_tidy %>% filter(tumor_type=="Type_1_Papillary_RCC")
+type2 <- classified_tidy %>% filter(tumor_type=="Type_2_Papillary_RCC")
+
+# 3. Data distribution can be easily visualized with a histogram. The function for ggplot is geom_histogram(). 
+
+# 4. Let's visualize the histograms for the two plots
+ggplot(type1, aes(x=tumor_size_largest))+
+  geom_histogram()
+ggplot(type2, aes(x=tumor_size_largest))+
+  geom_histogram()
+
+# 5. t.test function to compute the pvalue using t-test
+t.test(tumor_size_largest ~ tumor_type, data = classified_tidy)
+```
+</details>
+</div>
+
+
+##  Exercise 3.2: installing the ggpubr package
+We can also directly compute the pvalues in the boxplot: there is a very useful package called **ggpubr** (gg pubblication ready) that helps with computing statistical tests while plotting.
+
+- 1. Install the package ggpubr (remember the function install.packages(), the arguments must be inside quotes).
+- 2. Load the package (remember the function library)
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r,include=TRUE,eval=FALSE}
+# 1 and 2. Install and load the packages
+install.packages("ggpubr")
+library(ggpubr)
+```
+</details>
+</div>
+
+##  Exercise 3.3: computing statistics on plots
+Now that we have installed and loaded the package, we can compute the ttest directly on the plot. <br>
+In this case, let's see together how to do it.
+- 1. Check the help page for the function stat_compare_means(). This function can be added with a + after a ggplot and its argument method can be specified using different statistical tests. In our case we can use "t.test". Plot the boxplot with the t-test automatically calculated. Here how to do it:
+
+```{r,include=TRUE,eval=TRUE}
+# 3. Add the pval from the plot
+ggplot(classified_tidy, aes(x = tumor_type, y = tumor_size_largest,fill=tumor_type)) +
+  geom_boxplot()+
+  stat_compare_means(method = "t.test") # we could even use different methods
+```
+
+##  Exercise 4: type and age at diagnosis
+Now let's repeat what we did but for a different variable. Check the relationship between **tumor type** (one and two) and **age at diagnosis**. Assume the variable is normally distributed in the two type groups (we can compute the t-test).
+
+1 - Plot the boxplot for age_at_diagnosis comparing the two tumor types and add the p-value of the comparison using stat_compare_means().
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r,include=TRUE,eval=TRUE}
+# Let's repeat for the age
+ggplot(classified_tidy, aes(x = tumor_type, y = age_at_diagnosis, fill=tumor_type)) +
+  geom_boxplot()+
+  stat_compare_means(method = "t.test")
+```
+</details>
+</div>
+
+
+##  Exercise 5: relationship between size and age at diagnosis
+Now let's compare **largest size** and **age at diagnosis** for each tumor type. We already generated the data frames type1 and type2, we will use them to compare the variables inside each tumor type.
+
+- 1. "tumor_size_largest" and "age_at_diagnosis" are two **continuous numerical variables**. Which plot would you use?
+- 2. Plot the comparison between tumor_size_largest and age_at_diagnosis in the two different tumor types. Is there a clear pattern?
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r,include=TRUE,eval=TRUE}
+# 1. Relationship between two continous numerical variables can be easily visualized with a scatterplot. The function for ggplot is geom_point().
+
+# 2a. plot correlation for type 1
+ggplot(type1,aes(x=tumor_size_largest,y=age_at_diagnosis))+
+  geom_point()
+
+# 2b. plot correlation for type 2
+ggplot(type2,aes(x=tumor_size_largest,y=age_at_diagnosis))+
+  geom_point() 
+
+# The correlation between these variables is not visually clear. 
+```
+</details>
+</div>
+
+
+##  Exercise 5.1: regression line and statistical correlation
+FYI: we can add **regression lines** and **statistical correlation** to scatterplot using the functions stat_cor() and geom_smooth(method = "lm", se = FALSE). Check them out!
+
+```{r,include=TRUE,eval=TRUE}
+ggplot(type1,aes(x=tumor_size_largest,y=age_at_diagnosis))+
+  geom_point() + stat_cor()+
+   geom_smooth(method = "lm", se = FALSE)
+
+ggplot(type2,aes(x=tumor_size_largest,y=age_at_diagnosis))+
+  geom_point() + stat_cor()+
+   geom_smooth(method = "lm", se = FALSE)
+```
+
+<br><br>
+We saw that there is no significant correlation between the tumor_size_largest and the age_at_diagnosis. <br>
+
+##  Exercise 5.2: significant statistical correlation
+If you want to see two variables that are correlated significantly, check the largest and smallest tumor size.
+
+- 1. Repeat the plot we just did but comparing rgest and smallest tumor size. Check also their correlation.
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r,include=TRUE,eval=TRUE}
+# 1. plot significant correlation
+ggplot(type1,aes(x=tumor_size_largest,y=tumor_size_smallest))+
+  geom_point() + stat_cor()
+
+ggplot(type2,aes(x=tumor_size_largest,y=tumor_size_smallest))+
+  geom_point() + stat_cor()
+```
+</details>
+</div>
+
+
+## Exercise 6: comparing Gender and Type
+Now let's compare the gender and the type to see if there is a predominance of one type in a specific gender.
+
+- 1. Create a new data frame (called **gender_type**) that stores the count for the two tumor types in Male and Female. We need to create a data frame that counts the number of observation for the different combinations (male-type1, male-type2, female-type1, female-type2). Do you remember the **group by and summarize**? Useful here.
+- 2. Visualize this data: we have two **categorical** variables (Gender and tumor_type). How do we visualize them?
+- 3. Plot the data. Are you able to tell if there is a preference for one of the two types in Male or Female?
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r,include=TRUE,eval=TRUE}
+# 1. let's count the number for the combinations
+gender_type <- classified_tidy %>% 
+  group_by(Gender,tumor_type) %>% 
+  summarise(count=n())
+
+# 2. Relationship between two categorical variables can be easily visualized with a barplot. 
+# The function for ggplot is geom_col() or geom_bar(). 
+# The second function is a bit more complex because it requires different arguments, but allows to play a bit with the barplots. 
+
+# 3a. First option: geom_col
+ggplot(gender_type,aes(x=Gender,y=count,fill=tumor_type)) +
+  geom_col()
+
+# 3b. Second option: geom_bar: you can also play with the position and stat parameters
+ggplot(gender_type,aes(x=Gender,y=count,fill=tumor_type)) +
+  geom_bar(position = "fill",stat = "identity")
+
+```
+</details>
+</div>
+
+
+## Summary of Part1
+- We explored the dataset, and we visualized using different plots based on the variable types.
+- One categorical and one numerical: boxplot (geom_boxplot())
+- Distribution of the data: histogram (geom_histogram())
+- Two numerical: scatterplot (geom_point())
+- Two categorical: barplot (geom_bar())
+<br><br>
+
+# Part 2: the RNAseq dataset
+Here we introduce the second dataset of this exercise, the RNA-seq dataset. This dataset includes genes coming from multiple **bulk RNA sequencing experiments** done on both tumors from type1 and type2. From these experiments, a **Fold Change** has been calculated between the two tumor subtypes, together with a **p-value**. 
+<br><br>
+
+## Exercise 1: Load and explore the dataset
+- 1. Read the dataset **"RNAseq_FC.csv"**, and assign to the object **RNAseq**. Remember that it is a .csv file and it has column names.
+- 2. Check the **first 10 rows** of the dataset. To do so check the help of the head() function.
+- 3. How many genes are present in this dataset?
+- 4. Remove the genes with a **fold change equal to 1** and reassign to **RNAseq**.
+- 5. What is the maximum and the minimum Fold Change and to which genes do they belong? Tip: you can order the dataset and then print the first and last row.
+- 6. How many genes from the **cyclin family** are in the dataset? The genes from the cyclin family all start with **CCN**. You can use grepl to subset the data frame for those genes and then count. SKIP IF TOO HARD!
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r, eval=T, include=TRUE,results=FALSE}
+# 1. Read the dataset
+RNAseq <- read.table(file = "RNAseq_FC.csv",
+                     header = T,
+                     sep = ",")
+
+# 2. check the help page for the head function and then check the first 10 rows
+?head()
+head(RNAseq,n=10)
+
+# 3. The genes are the observations, so to get their numbers we count the rows
+nrow(RNAseq)
+
+# 4. Remove the genes that have a FC==1
+RNAseq <- RNAseq %>% filter(FC_type2vstype1!=1)
+
+# 5. Calculate maximum and minimum fold change
+# 5a. Let's order the dataset
+ordered_RNA <- RNAseq %>% arrange(FC_type2vstype1)
+# 5b. Select the first and last row using the head and specifying the n=1
+head(ordered_RNA,n=1)
+tail(ordered_RNA,n=1)
+
+# 6. Count the genes belonging to the cyclin family
+cyclin <- RNAseq %>% filter(grepl("CCN",symbol))
+nrow(cyclin)
+
+```
+</details>
+</div>
+
+
+## Exercise 2: Log transformation of the fold change
+When we work with Fold Change in RNA seq, what we normally do is to log transform it.
+
+- 1. Check the **distribution** of the fold change - is it skewed?
+- 2. Create a new column with the **log2 transformation** of the Fold Change (called **log2FC**). Google how to compute log2 in R.
+- 3. Now check the **distribution** of the log2 fold change column. Is it better?
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r, eval=T, include=TRUE}
+# 1. To check the distribution, use a histogram
+ggplot(RNAseq, aes(x=FC_type2vstype1))+
+  geom_histogram()
+
+# 2. Log2 transformation - the function log2()
+RNAseq <- RNAseq %>% mutate(log2FC=log2(FC_type2vstype1))
+
+# 3. plot the trasnformed data
+ggplot(RNAseq, aes(x=log2FC))+
+  geom_histogram()
+```
+</details>
+</div>
+
+
+## Exercise 3: Volcano plot
+A very useful tool to visualize RNAseq data is to use **volcano plots**.
+
+![](volcanoplot_top10.png)
+<br><br>
+Volcano plot is a scatterplot (geom_point()) that has log2FC on the x axis and -log10(pvalue) on the y axis.
+
+- 1. We already created the log2FC column, now let's start create the -log10(pval) column (named **minuslog10pval**).
+- 2. Now plot, the volcano plot! What goes on the x and what on the y axis? 
+- 3. HARD: Let's say we want to color only the dots that have a pval < 0.0001. We can create a new column with T/F for the conditional statement pval < 0.0001 and call it **interest**.<br><br>
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r, include=TRUE,eval=TRUE,results=TRUE}
+# 1. Create the column storing -log10(pval)
+RNAseq <- RNAseq %>% 
+  mutate(minuslog10pval=-log10(pval))
+
+# 2. Plot the volcano plot!
+RNAseq %>% ggplot(aes(x = log2FC,y= minuslog10pval)) + geom_point()
+
+# 3a. Create a T/F column that stores TRUE if pval < 0.0001
+RNAseq <- RNAseq %>% 
+  mutate(interest=pval<0.0001)
+
+# 3b. Plot coloring for the newly created column
+RNAseq %>% ggplot(aes(x = log2FC,y= minuslog10pval,color=interest)) + 
+  geom_point()
+```
+</details>
+</div>
+
+# CONGRATS
+If you made until here, congrats! If you did not, you can still try to do it after the course and use this exercise as a memorandum on how to filter, select and plot!
