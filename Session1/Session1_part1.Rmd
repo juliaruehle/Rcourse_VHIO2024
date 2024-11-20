@@ -1,0 +1,437 @@
+---
+title: "Introduction to programming in R"
+author: "Julia Rühle & Leone Albinati"
+date: "25th-27th of November 2024"
+output:
+  html_document:
+    theme: cerulean
+    df_print: paged
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: no
+    highlight: tango
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+knitr::opts_knit$set(root.dir = 'Y:/lalbinati/Rcourse_material_VHIO/')
+
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(DESeq2)
+library(patchwork)
+
+```
+
+# Course organization
+
+> **Day 1 (27th of November):** 
+>
+* Introduction to R and Rstudio 
+* R basics: objects, paths and functions
+* The basis of reproducibility: the R script 
+* Libraries and packages
+* Break!
+* Data types in R
+* Data structures: vectors, matrices and dataframes
+* Read and write files
+
+> **Day 2 (28th of November):** 
+>
+* The amazing world of tidyverse
+
+> **Day 3 (29th of November):** 
+>
+* The amazing world of plotting
+* Final exercise
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+# What is R?
+
+- R is a **programming language**: allows us to communicate with the computer, translating the computer's code into something humans can understand and write
+- Born in 1995 in Nez Zealand on top of the Statistical Programmin language S
+- R is **free** and **open source**!
+- It is **widely used** (especially in biology) and has a huge and active **community**
+- It runs on **multiple platforms** (MacOS, Linux, Windows...)
+- Through the scripting possibility, it **allows for reproducibility**
+- Access through a command-line interpreter
+
+
+![](Y:/lalbinati/Rcourse_material_VHIO/images/R.jpg)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+# What is Rstudio?
+
+- Rstudio is a **graphical interface** for R: it makes it easier to use the R language to communicate with the computer
+
+- It has four panes
+   1. top-left: scripts, *to garantee reproducibility*
+   2. bottom-left: R console, *to communicate with the computer*
+   3. top-right: objects, history and environment
+   4. bottom-right: folders, plot window, help window
+
+
+![](Y:/lalbinati/Rcourse_material_VHIO/images/Rstudio.jpg)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+# R basics
+
+## R as a calculator
+R console can be used as a calculator.
++ (addition) 
+- (subtraction)
+* (multiplication)
+/ (division)
+^ (exponential)
+
+![](Y:/lalbinati/Rcourse_material_VHIO/images/calculator.jpg)
+
+
+In the console, to have R interpreting your command you have to hit Enter
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+## Objects: store data in R
+In R, data can be stored inside objects.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+### Creating objects: the assignment operator
+To create an object, we can use the **assignment operator <-**
+
+```{r, include=TRUE, eval = FALSE}
+# Let's create an object "my_object" that stores the value 4
+my_object <- 4
+```
+
+
+![](Y:/lalbinati/Rcourse_material_VHIO/images/assignment.jpg)
+
+
+- The object we just created is now in the environment (upper-right panel)
+- Tip: shortcut for <- : Alt + - (Windows) or Option + - (Mac).
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+### Working with objects
+- You can show what is stored inside the object writing its name in the console and hitting Enter
+- We can use the content of the object to do operations
+
+```{r, include=TRUE, eval = FALSE}
+# Let's add 7 to my_object
+my_object + 7
+```
+
+- If we do so, the content of my_object is not changing (try to print my_object in the console)
+- To change the content of the object, we have to re-assign
+
+```{r, include=TRUE, eval = FALSE}
+# Let's modify the content of my_object
+my_object <- my_object + 7
+```
+
+- We can also use multiple objects to do calculations
+
+```{r, include=TRUE, eval = FALSE}
+# Let's create a new object
+my_second_object <- 5
+my_object * my_second_object
+
+# let's store the result in a third object
+my_third_object <- my_object * my_second_object
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+### Naming objects
+**Few rules to respect when naming objects**
+
+- R is case sensitive (**My_object** is different from **my_object**)
+- Cannot start with a number or contain spaces
+- Avoid **special characters** except underscore
+- Try to **explain the content of the object**!
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+## Paths and working directory
+- The path of a file/directory is its **"address"** in the computer
+- It can be absolute (starts from the root) or relative (starts from where you are)
+- Depending on your operating system, how the path looks could be a bit different
+
+```{r, include=TRUE, eval = FALSE}
+# Windows
+"C:/Users/lalbinati/Desktop/"
+# MacOS and Linux
+"/Users/lalbinati/Desktop/"
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+### Working directory
+- When you start working in R you are normally located in your home directory (Linux and MacOS).
+- This is your **working directory**: this means that everything you will import or export will be automatically directed here. 
+- If we want to import/export something from a different directory, we will have to specify it.
+- It is really important, before starting working, to **change and specify your working directory**.
+- Why is this important? Normally, each project will have a different working directory, making the analysis easier and cleaner.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+### Checking and changing working directory from the console
+To know where I am currently located, we can use the function **getwd()**
+
+```{r, include=TRUE, eval = FALSE}
+# Run this command in the console and hit Enter
+getwd()
+```
+
+To change the working directory, use the function setwd() and inside the brackets write the path of the new working directory
+```{r, include=TRUE, eval = FALSE}
+# changing the working directory to the desktop
+setwd("C:/Users/lalbinati/Desktop")
+
+# check that the directory has changed
+getwd()
+```
+
+We do not want to work on the Desktop (it would be really messy) so we can create a folder for the R course (called **Rcourse_2024**) and move our working directory there.
+
+Many things in Rstudio can be done from the console or using the point-and-click approach.
+
+Let's create a new folder where to store the material for the course.
+
+
+![](Y:/lalbinati/Rcourse_material_VHIO/images/workind_directory.jpg)
+
+
+Now, let's change the working directory to the newly created Rcourse_2024
+
+```{r, include=TRUE, eval = FALSE}
+# let's use the setwd() function
+# we have two options: to use the absolute path or the relative path
+
+# where are we
+getwd()
+
+# using the absolute path
+setwd("C:/Users/lalbinati/Desktop/Rcourse_2024")
+
+# using the realtive path
+setwd("Rcourse_2024")
+```
+
+Using the absolute or relative path gives the same input.
+
+- Use **absolute paths** (e.g., "/Users/YourName/data/data.csv") when you need to point to a file or folder that will always be in the same location on your machine, regardless of where your R script is located.
+
+- Use **relative path**s (e.g., "data/data.csv") when working within a project or a fixed folder structure. Relative paths are better for portability—if you move the project folder, the paths will still work as long as the folder structure remains the same.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+## Functions in R
+- In R, a function is a **block of code that performs a specific task**. You can think of it as a "recipe" that takes input, does something with it, and returns an output. You normally don't see the code behind the function, but you just get the output.
+- It is easily recognizable by the **brackets**: functionname**()**
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+### Function example
+Let's explore the **round()** function
+
+```{r,include=TRUE, eval = FALSE}
+# Run this function in your console,can you guess what it does?
+round(x=3.14159265358,digits=2)
+```
+
+<details>
+  <summary>Click to expand</summary>
+  
+  `round()` rounds the values in its first argument to the specified number of decimal places (default 0).
+  
+</details>
+
+
+![](Y:/lalbinati/Rcourse_material_VHIO/images/function.jpg)
+
+
+A function takes arguments (in this case x and digits)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+### Getting help
+To know what a function does and which are its arguments, we can ask for help.
+
+```{r,include=TRUE, eval = FALSE}
+# Two ways to ask for help from the console
+help(round)
+?round
+
+# otherwise use the help section of the bottom-right panel
+```
+
+If this section is not helpful enough, Google it!
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+### Managing the arguments
+- Some of the arguments can be **mandatory** (without them the function does not work)
+- They can be given using their names or **without names** following the order (careful with more complex-multiargument functions)
+- Suggestion: try to always write the name of the arguments
+
+```{r,include=TRUE, eval = FALSE}
+# Function with named arguments
+round(x=3.14159265358,digits=2)
+
+# Changing order but keeping names it does not change the output
+round(digits=2,x=3.14159265358)
+
+# Keeping only the x argument - what happens?
+round(x=3.14159265358)
+
+# Keeping only the digits argument - what happens? 
+round(digits=2)
+
+# Keeping the right order and removing names
+round(3.14159265358,2)
+
+# Changing order and removing names
+round(2, 3.14159265358)
+```
+
+We can also provide **objects as input arguments** for the functions
+```{r,include=TRUE, eval = FALSE}
+# Let's define the objects we want
+pi <- 3.14159265358
+decimals <- 3
+
+round(x=pi,digits=decimals)
+```
+
+We can also **assign** the output of a function to an object
+
+```{r,include=TRUE, eval = FALSE}
+# Function with named arguments
+pi_two_digits <- round(x=3.14159265358,digits=2)
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+# R script
+- The script is the basis of **reproducibility**, for you and for other people using your script
+- What you write in the console will be gone once you start a new Rstudio session
+- Scripting makes programming languages **much more reliable** than tools like Excel (even for tasks that could be done with Excel)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+## Create and save a script
+- Scripts can be created with any text editor (extension .r or .R)
+- In Rstudio, we can create a script from the top-right panel
+- To save, CTRL+S or file -> Save
+
+
+![](Y:/lalbinati/Rcourse_material_VHIO/images/scripting.png)
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+## The script panel
+- The script panel is **different from the console!**
+- What we write here **will not be run** unless we specifically decide to.
+- To run something from the script panel, put the cursor on the line and press **ctrl+Enter**
+- Once you have ran something, it will appear in the console together with the output
+- We can also run **multiple lines together**
+
+```{r,include=TRUE, eval = FALSE}
+# Write in the script panel - if you do not run the commands nothing will happen
+round(x=3.14159265358,digits=2)
+
+# we can select which lines to run or to run all together
+pi_three_digits <- round(x=3.14159265358,digits=3)
+pi_three_digits / 10
+```
+
+In R, everything that is followed by **#** will not be interpreted by the console. We can use it to comment the script
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+# Libraries and packages
+- **Packages** are collections of R functions. Everyone can develop a package.
+- A set of **standard packages** with their functions are supplied with R by default.
+- As an example, the package **stats** allows you to calculate the basic statistics.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+## Install a package
+- Most of the packages are stored in the **CRAN archive** (Comprehensive R Archive Network).
+- Some packages, more related to biology, are stored in **Bioconductor** (let's ignore it for now). 
+- To install a package from CRAN, we run the following command - you should have already done it for tidyverse and patchwork!
+
+```{r,include=TRUE, eval = FALSE}
+install.packages("patchwork")
+```
+
+- Once a package is installed, we will not have to install it anymore.
+- What we will have to do, is to "load" it in our current session.
+- To load a package in R, we run
+
+```{r,include=TRUE, eval = FALSE}
+library(patchwork)
+```
+
+- If you need to perform a task in R (and don't know how to do it), google that question and probably you'll find a package with a function that performs it!
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+# EXERCISE
+
+1. Check in which **directory** you are, if you are not in the Rcourse_2024 go there.
+2. Create a **new script** called exercise1.R.
+3. Load the package **patchwork**.
+3. **Comment** the first line writing your name and the date.
+4. Create an object called **obj1**, containing the value 36.
+5. Create a second object called **obj2**, containing the values 7.
+6. Calculate the **square root** (google the command to do it!) of obj1, then **re-assing** the output to obj1.
+7. **Print** obj1 in the console.
+8. Create a third object (obj3) containing the value of the division between obj1 and obj2.
+9. **Save** the script.
+
+
+<div style="border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+<details>
+  <summary>Answer</summary>
+```{r, eval=FALSE, include=TRUE}
+# 3. load patchwork
+library(patchwork)
+
+# 4. Create obj1
+obj1 <- 36
+
+# 5. Create obj2
+obj2 <- 7
+
+# 6. Square root of obj1
+obj1 <- sqrt(obj1)
+
+# 7. Print in the console
+obj1
+
+# 8. Create obj3
+obj3 <- obj1/obj2
+
+
+```
+</details>
+</div>
+
+
+
+
