@@ -1,0 +1,195 @@
+---
+title: "Introduction into ggplot2"
+format: 
+  html:
+    theme: cerulean
+    toc: true
+    toc-location: left
+    #number-sections: true
+    section-divs: true
+    collapse-level: 1
+    embed-resources: true
+editor: visual
+author: "Leone Albinati & Julia Rühle"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+editor_options:
+  chunk_output_type: console
+---
+
+```{r, label = setup, warning = FALSE, message = FALSE, include = FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+#knitr::opts_knit$set(root.dir = '~/Desktop/VHIO_course/Lab3_ggplot')  
+
+library(tidyverse)
+library(RColorBrewer)
+library(patchwork)
+
+```
+
+# Visualization using ggplot2
+
+Before we get started with plotting we need to load the ggplot library.
+
+```{r, eval=FALSE, include = TRUE}
+#loading the ggplot2 library 
+library(ggplot2)
+
+#but remember: ggplot2 is alreday included in the tidyverse
+library(tidyverse)
+
+```
+
+## 3 Building Blocks
+
+`ggplot2` is an R plotting package that allows us to plot a variety of easy, as well as complex plots. In general, ggplot2 builds graphics in a **"layer-by-layer"** fashion, by adding new elements step-wise.
+
+To build a `ggplot2` graph you need 3 pieces of information:
+
++--------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| 1.  DATA     | A ***data.frame*** or ***tibble*** with data to be plotted                                                                             |
++--------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| 2.  MAPPINGS | ***Variables*** as ***columns*** of the data frame that will be ***mapped*** to different ***aesthetics*** (axis, colors, shapes, ...) |
++--------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| 3.  GEOMETRY | determines ***how*** data is plotted (boxplot, violinplot, points, lines, ...)                                                         |
++--------------+----------------------------------------------------------------------------------------------------------------------------------------+
+
+The basic syntax to build a ggplot figure, looks like the following:
+
+```{r, eval= FALSE}
+
+ggplot(data = <DATA>, mapping = aes(<MAPPINGS>)) + 
+  <GEOMETRY>()
+
+```
+
+First of all, we have to specify the data frame we would like to plot in the **data** argument. In the **mapping** argument, we define the aesthetics of the plot: We select the variables we want to plot and how we want them to be plotted (e.g. as x/y positions, size, shape, color, ...). Last, we have to define the **geometry**. This sets the representation of the data in the plot (e.g. scatter plot, barplot, boxplot, ...).
+
+## My first ggplot
+
+Before you start the next Hands-on session, let's try to create a very simple **bar plot** with one of the previously computed summary statistics in which we counted the **number of samples per diagnosis**.
+
+```{r, eval= TRUE}
+
+#Read in the data 
+meta <- read_csv("~/Desktop/VHIO_course/Lab2_tidyverse/Lab2_data/bulk_RNA_metadata.csv")
+
+#Counting the number of patients per diagnosis and store it in a summary table
+no_of_patients_per_diagnosis <- meta %>% 
+  group_by(diagnosis) %>% 
+  dplyr::summarise(no_of_patients = n()) 
+
+```
+
+```{r, eval = TRUE}
+print(no_of_patients_per_diagnosis)
+```
+
+Let´s create this **barchart** step-by-step to understand how ggplot works:
+
+```{r, eval = TRUE}
+
+ggplot(data = no_of_patients_per_diagnosis)
+
+```
+
+That´s fantastic, we didnt get an error! Let´s define the aesthetics next.
+
+For this, we need to map to columns to the aesthetics using the `aes()` function.
+
+```{r, eval = TRUE}
+
+ggplot(data = no_of_patients_per_diagnosis, mapping = aes(x = diagnosis, y = no_of_patients))
+
+```
+
+We now can see that our axis are defined correctly. Last, we need to pass the argument how we want the data to be displayed.
+
+This is done by adding geometries to our graph using the `+`.
+
+```{r, eval = TRUE}
+
+ggplot(data = no_of_patients_per_diagnosis, mapping = aes(x = diagnosis, y = no_of_patients)) +
+  geom_col()
+
+```
+
+# Geometries
+
+ggplot can create a huge variety of different types of plots. A selection can be found here on this ggplot cheat sheet [here](https://rstudio.github.io/cheatsheets/data-visualization.pdf). On top of that many R packages with very specific types of visualizations are developed on the basis of ggplot. So they work using the same syntax.
+
+## Exercise 1
+
+Let's try to reproduce some parts of the SARS-CoV-2 paper of Figure 1 to visualize the distribution of the cohort using ggplot2.
+
+1.  Have a look at Figure 1 (panel c and d) of the paper before starting this exercise. <https://doi.org/10.1038/s41586-020-03148-w>
+
+2.  Use the `geom_boxplot()` geometry to create a boxplot that visualizes the distribution of age of the patients across the different groups of diagnosis (Fig. 1, panel c). Hint: Don´t overthink!
+
+3.  It is also useful to not only plot the boxes, but the data points itself. You can check on the internet or the cheat sheet above which geometry plots the points on top of the boxplot.
+
+4.  It would be nicer if the boxes had different colors, and if we could add a title to the plot. Are you happy with your plot? You can always ask ChatGPT for additional help to improve your plot and add layer-by-layer.
+
+5.  Challenging: Compute the **proportion** of sexes for the different diagnosis groups (Fig. 1, panel d) using the tidyverse functions `group_by()`{.R}, `summarise()`{.R} and `mutate()`{.R} visualize it in a **stacked bar chart**. Change the colors, fontsizes or anything of the plot until you like your plot.
+
+::: {.callout-tip collapse="true"}
+## Answer
+
+```{r, eval = FALSE, message = FALSE, warning = FALSE, eval=TRUE}
+
+# 1-4
+patient_age_plot <- ggplot(meta, aes(x = diagnosis, y = age, fill = diagnosis)) + 
+  geom_boxplot() + 
+  geom_jitter(size = 0.5) + 
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 20)) +
+  scale_fill_brewer(palette="Accent") + 
+  ggtitle("Patient Age") +
+  theme(legend.position = "none") 
+  
+# compute summary statistics 
+sex_to_plot <- meta %>% 
+  dplyr::group_by(diagnosis, sex) %>% 
+  dplyr::summarise(number_of_patients = n()) %>% 
+  mutate(rel_no_of_pats = number_of_patients/sum(number_of_patients))
+
+#stacked bar chart
+plot_sex <- ggplot(sex_to_plot, aes(x = diagnosis, y = rel_no_of_pats, fill = sex)) + 
+  geom_col() + 
+  theme_classic() + 
+  scale_fill_brewer(palette="Set2") + 
+  theme(axis.text.x = element_text(angle = 20)) + 
+  ggtitle("Distribution of sex")
+
+#using the patchwork library, we can align plots easily   
+patient_age_plot + plot_sex
+  
+```
+:::
+
+## Additional: Aligning plots using patchwork
+
+`patchwork` is a framework that makes it "ridiculously simple to combine separate ggplots into the same graphic". You can check out the documentation [here](https://patchwork.data-imaginist.com).
+
+The most basic example is to align two plots side by side using the `+` (as you can see in the solutions of the previous excercise).
+
+In the documentation you can find out how to align plots underneath each other, and create much more complex panels of figures.
+
+My favorite functionality though is to already at alphabetical tags for each subplot as shown below. Can you find out how to recreate this plot?
+
+```{r, eval = TRUE, echo = FALSE}
+(patient_age_plot + plot_sex) +
+  plot_annotation(tag_levels = 'a')
+```
+
+::: {.callout-tip collapse="true"}
+## Answer
+
+```{r, eval = FALSE, message = FALSE, warning = FALSE}
+
+(patient_age_plot + plot_sex) +
+  plot_annotation(tag_levels = 'a')
+  
+```
+:::

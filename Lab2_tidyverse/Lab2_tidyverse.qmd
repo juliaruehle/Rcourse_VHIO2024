@@ -1,0 +1,480 @@
+---
+title: "Introduction into the Tidyverse"
+format: 
+  html:
+    theme: cerulean
+    toc: true
+    toc-location: left
+    #number-sections: true
+    section-divs: true
+    collapse-level: 1
+    embed-resources: true
+editor: visual
+author: "Leone Albinati & Julia Rühle"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+editor_options:
+  chunk_output_type: console
+---
+
+```{r, echo=FALSE,label = setup, warning=FALSE, message=FALSE}
+
+library(tidyverse)
+
+#setwd
+knitr::opts_knit$set(root.dir = "~/Desktop/VHIO_course/Lab2_tidyverse/")
+
+```
+
+# Day2 Content
+
+# Introduction
+
+## What is the "tidyverse"?
+
+A collection of R packages designed for data science:
+
+-   Importing data into R
+
+-   Preparing/Cleaning Data
+
+-   Visualizing data
+
+## Why do we want to learn it?
+
+-   More intuitive programming: the names of the functions are very descriptive
+
+-   Codes is easy to read (for yourself & others)
+
+-   Very efficient
+
+Here is a piece of R base code:
+
+```{r, include = TRUE, eval = FALSE}
+
+# generally, column names are already added when creating the dataframe - without 
+#column names a data frame is "meaningless", because we do not knowthe variables 
+people <- data.frame(name=c("Leone","Julia","Luisa"),
+                     age=c(31,30,28),
+                     italian=c(T,F,T))
+
+session1_teacher <- people[people$age >= 30 & people$italian == TRUE,]$name
+
+```
+
+And its equivalent in tidyverse:
+
+```{r, eval = FALSE}
+
+session1_teacher <- people %>% 
+  filter(age > 30, 
+         italian == TRUE) %>% 
+  pull(name)
+
+```
+
+Another example:
+
+```{r, eval=FALSE}
+diamonds
+
+diamonds_subset <- diamonds[diamonds$cut == "Ideal", c("cut", "color", "carat", "price")]
+diamonds_subset[order(diamonds2$price, decreasing=TRUE),]
+
+#and this is the equivalent in tidyverse
+diamonds %>% 
+  select(cut, color, carat, price) %>% 
+  filter(cut == "Ideal") %>% 
+  arrange(des(price))
+
+```
+
+## Tidyverse Core packages
+
+The following packages are included in the tidyverse version 2.0.0 (current version in October 2024).
+
+More material & info can be found on the [tidyverse vignette](https://www.tidyverse.org).
+
+-   Data Import & Management
+
+    -   tibble
+
+    -   readr
+
+-   Data Wrangling (Tidying & Transformation)
+
+    -   dplyr
+
+    -   tidyr
+
+    -   stringr
+
+    -   forcats
+
+-   Visualization
+
+    -   ggplot2
+
+-   Functional Programming
+
+    -   purrr
+
+# Tibbles
+
+## Creating & displaying
+
+Tibbles are more user-friendly data frames **without rownames.**
+
+```{r}
+
+people_tibble <- tibble(name=c("Leone","Julia","Luisa"),
+                     age=c(31,30,28),
+                     italian=c(T,F,T))
+
+```
+
+Otherwise, we can also convert a data frame to a tibble.
+
+```{r}
+
+people_df <- data.frame(name=c("Leone","Julia","Luisa"),
+                     age=c(31,30,28),
+                     italian=c(T,F,T))
+
+people_tibble <- as_tibble(people_df)
+```
+
+The way a tibble is printed in the console is different from a data frame.
+
+```{r}
+people_tibble
+```
+
+-   **Dimensions** are shown
+
+-   Information about **data types** for each column
+
+-   Only the first 10 rows are displayed
+
+## Subsetting
+
+We can manipulate and subset tibbles the same way as we learned in the first session of the course using base R. Here are some examples.
+
+-   Extract column by name or position/index
+
+```{r}
+#extract column by name 
+people_tibble$name
+
+#extract column by index 
+people_tibble[,1]
+```
+
+-   Extract row by index
+
+```{r}
+people_tibble[3,]
+```
+
+# Data manipulation with dplyr
+
+Sometimes bracket subsetting using base R function can be laborious and the code can become difficult to read. The `dplyr` package helps us to overcome these problems and will also become useful later on when we want to compute summary statistics on our data.
+
+Here are the most **useful dplyr** functions:
+
+| Name                       | What it does                         |
+|----------------------------|--------------------------------------|
+| `mutate()`                 | adds columns                         |
+| `filter()`                 | subsets rows on conditions           |
+| `select()`                 | subsets columns by names             |
+| `arrange()`                | orders according to a column         |
+| `summarise() & group_by()` | groups & computes summary statistics |
+
+All functions take a tibble (or a data frame) as the input and output a new tibble.
+
+## 
+
+Let's use the `presidential` data set to get to know and practice these functions. It contains data of the terms of presidents of the USA providing information about:
+
+-   Name
+
+-   Term starting date
+
+-   Term ending date of mandate
+
+-   Political party
+
+```{r}
+
+presidential
+
+```
+
+## mutate()
+
+The `mutate()` function creates new columns based on existing ones.
+
+![](images/rstudio-cheatsheet-mutate.png){fig-align="center"}
+
+Let's use it to create a new column with the **duration of each term**.
+
+```{r}
+#Substracting the end from the start column 
+presidential2 <- mutate(presidential, 
+       duration_days = end-start)
+```
+
+::: callout-note
+Use **unquoted** column names
+:::
+
+## select() & filter()
+
+How can we only select the **name** and the **political party** of the `presidential` tibble? Let's use the `select()` function:
+
+![](images/rstudio-cheatsheet-select.png){fig-align="center"}
+
+**Filtering Columns**:
+
+```{r, include=TRUE, eval = FALSE}
+
+#How do you select these columns using bracket-subsetting?
+# We can either do: 
+presidential[,c("name", "party")]
+
+#or
+presidential[,c(1,4)]
+
+#Using tidyverse's select() function it works like the following
+select(presidential, name, party)
+
+```
+
+How can we filter the **rows of the presidents that belong to the Democrats**? Let's use the `filter()` function:
+
+![](images/rstudio-cheatsheet-filter.png){fig-align="center"}
+
+**Filtering Rows:**
+
+```{r, include = TRUE, eval = FALSE}
+
+#How did you select rows before? 
+presidential[presidential$party == "Democratic", ]
+
+#How does this work using tidyverse? 
+filter(presidential, party == "Democratic")
+
+#we can also select based on multiple criteria 
+filter(presidential, party == "Democratic" & duration_days > 1000)
+
+```
+
+## The Pipe operator %\>%
+
+If we want to perform multiple select & filter operations at the same time, the code can become very **long and difficult to read**.
+
+To **avoid** this, we can use the **pipe symbol %\>%** (shortcut: Cmd+Shift+m). It pipes the output of a function as the first argument of the next function. This is how it works:
+
+```{r, eval = FALSE}
+#we learnt how to use functions
+filter(presidential, party == "Democratic")
+
+#using the pipe symbol
+presidential %>%
+  filter(party == "Deomcratic")
+
+#if we want to perform multiple operations it looks like this
+presidential %>%
+  filter(party == "Democratic") %>%
+  select(name)
+
+#if we wouldnt be using the pipe it would look like this
+select(filter(presidential, party == "Democratic"), name)
+
+```
+
+## Exercise 1
+
+In this exercise, we will explore sample meta data of a published RNA bulk data set [(Grant et al., 2021)](https://doi.org/10.1038/s41586-020-03148-w). Try to use **tidyverse & the pipe operator** for the following exercises.
+
+1.  Read in the meta data using the `read_csv()` function and save it as variable `meta`.
+
+2.  Have a look at the meta data. What information do you have about the patients? What are the column types?
+
+3.  How many samples does this data set contain?
+
+4.  Select the "diagnosis" column from the meta tibble.
+
+5.  What are the different types of diagnosis? We didn't learn how to do this in the course, but in this case the `unique()` function will do the job. Try to call the help for this function to see how you can use it.
+
+6.  Select the "sex" and "diagnosis" column from the meta tibble.
+
+7.  Select all columns except for the "superinfection" column. Is there a better way to do this than to select all of them by name?
+
+8.  Filter all the rows with a patient_id higher than 1000. How many samples are left?
+
+9.  Filter all the samples that are diagnosed with Covid-19 that are over 60 years old, and **only** select the "superinfection" column.
+
+10. Create a new column `rounded_age` that contains the rounded age of the patients.
+
+11. Why does this chunk of code not work?
+
+    ```{r, eval = FALSE}
+      meta %>% 
+        select(diagnosis, sex) %>% 
+        filter(diagnosis == "COVID-19" & superinfection == "Superinfection")
+    ```
+
+12. *Extra:* If you are done, try to code all of this using base R. Which version of the code do you like better?
+
+::: {.callout-tip collapse="true"}
+## Answer
+
+```{r, eval = FALSE, message = FALSE, warning = FALSE}
+#Read in the data 
+meta <- read_csv("./Lab2_data/bulk_RNA_metadata.csv")
+
+#lets check the tibble
+meta
+
+#how many samples does the data contain?
+dim(meta)
+
+#select the diagnosis column 
+meta %>%
+  select(diagonsis)
+
+#how many different types of diagnoses are there?
+meta %>% 
+  select(diagnois) %>% 
+  unique() 
+
+#select sex and diagnosis column 
+meta %>% 
+  select(sex, diagnosis)
+
+#select all columns except for superinfection 
+meta %>% 
+  select(-superinfection)
+
+#Filter all Covid-19 patients that are over 60 years old 
+meta %>% 
+  filter(diagnosis == "COVID-19",
+         age > 60) %>% 
+  select(superinfection)
+
+#add a new column rounded_age 
+meta %>% 
+  mutate(rounded_age = round(age))
+  
+```
+:::
+
+😃 Time for a break
+
+## group_by() & summarise()
+
+In many data analysis tasks, we want to split the data into groups and apply the same analysis to each group and last, combine the results in a summarized table or plot. We want to compute **summary statistics**. For this, we can use the `group_by()` and `summarise()` functions.
+
+![](images/rstudio-cheatsheet-group_by.png){fig-align="center"}
+
+Let's use the function `group_by()` to separate the presidential data into democrats & republicans.
+
+```{r}
+presidential2 %>% 
+  group_by(party)
+
+```
+
+With `summarise()`, we can now for example compute the min, max or mean number of duration days
+
+![](images/rstudio-cheatsheet-summarise.png){fig-align="center"}
+
+```{r}
+presidential2 %>% 
+  group_by(party) %>% 
+  summarise(mean_term = mean(duration_days),
+            min_term = min(duration_days),
+            max_term = max(duration_days))
+```
+
+We can also use `group_by()` & `summarise()` in combination with `n()` to count occurrences across groups.
+
+```{r}
+presidential2 %>% 
+  group_by(party) %>% 
+  summarise(no_presidents = n())
+```
+
+## Exercise 2
+
+Let's get back to our bulk RNA data set.
+
+1.  Create a new tibble that stores the **average age across the different groups of diagnoses**, and the number of samples in each group.
+
+2.  Of this table filter the groups that have more than 30 samples.
+
+3.  Create a new tibble that stores the same values: average age, and number of samples in each group. This time, we want to investigate the following groups: Group1: COVID-19 & Female, Group2: COVID-19 & Male, Group3: Healthy Control & Female, Group 4: Healthy Control & Male, and so on...
+
+4.  Between the female patients that have been intubated and not-intubated for more than 10 days, is there more in the "COVID-19" or the "Other pneumonia" group? (Tip: First, create a new column that indicates if the patient has been intubated for more than 10 days.)
+
+5.  Challenging: Of how many samples do we have single-cell RNA-data?
+
+::: {.callout-tip collapse="true"}
+## Answer
+
+```{r, eval = FALSE, message = FALSE, warning = FALSE}
+#tibble with mean age & number of patients across diagnosis groups 
+meta %>% 
+  group_by(diagnosis) %>% 
+  summarise(average_age = mean(age),
+            no_samples = n())
+
+#filter groups with more than 30 patients 
+meta %>% 
+  group_by(diagnosis) %>% 
+  summarise(average_age = mean(age),
+            no_samples = n()) %>% 
+  filter(no_samples > 30)
+
+#grouping by diagnosis AND sex
+meta %>% 
+  group_by(diagnosis, sex) %>% 
+  summarise(average_age = mean(age),
+            no_samples = n())
+
+#grouping by intu10, sex and diagnosis to count occurrences 
+meta %>% 
+  mutate(intu10 = days_from_first_intubation > 10) %>% 
+  group_by(intu10, sex, diagnosis) %>% 
+  summarise(no_samples = n()) %>% 
+  filter(diagnosis %in% c("Other Pneumonia", "COVID-19"))
+
+#how many single-cellRNA seq ids are not NAs
+sum(!is.na(meta$scRNAseq_id))
+
+```
+:::
+
+::: callout-note
+When you are grouping variables with `group_by()`, the tibble will keep the grouping until you ungroup using `ungroup()`!
+:::
+
+😃 Time for a break
+
+![](images/kitten-try-things.jpg){fig-align="center"}
+
+For further reading you can look into this open-source [online book](https://bookdown.org/ansellbr/WEHI_tidyR_course_book/#before-we-begin). Some of the images incroporated in this markdown are taken from this source.
+
+## Optional: Exercise 3
+
+If this was too easy, you can try to get familiar with R quarto and implement your solutions in an R quarto file.
+
+**Quarto** is a very useful tool to make your research even more **reproducible**, because it allows you to combine code and text in a very simple way. This .html for example, is created using Quarto.
+
+This is how an example file looks like:
+
+![](images/Screenshot%202024-11-25%20at%2017.04.14.png)
+
+1.  First you have to install Quarto [here](https://quarto.org/docs/get-started/).
+2.  Restart your RStudio and open a Quarto document.
+3.  You can play around with the Cmd + / shortcut and see how you can combined text and code. Try to clean up your code from the excercises, putting it into a .qmd file. You can try to add Headings, code chunks, a table of content, comments, links, images or emojis. Just try it 🥰
