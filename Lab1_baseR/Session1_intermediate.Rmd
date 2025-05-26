@@ -1,0 +1,241 @@
+---
+title: "Introduction to programming in R"
+author: "Julia Ruhle & Leone Albinati"
+date: "26th and 27th of May 2025"
+output:
+  html_document:
+    theme: cerulean
+    df_print: paged
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: no
+    highlight: tango
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+knitr::opts_knit$set(root.dir = 'Y:/lalbinati/Rcourse_material_CRG_2025/')
+
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(patchwork)
+
+```
+
+# Course organization
+
+> **Day 1 (26th of May):** 
+>
+* Refreshing data manipulation with R
+* The amazing world of tidyverse
+
+> **Day 2 (27th of May):** 
+>
+* The basics of plotting - ggplot2
+* Final exercise
+
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+## Set up things
+- The path of your computer should be "/home/training/". Check if it is with getwd()
+- In "/home/training/" create a new folder called "tidyverse_course_2025": this folder will be used to store all the outputs/inputs/scripts of this course
+- Use the same computer for both sessions - at the end of the course mail yourself everything you want to keep.
+- Check if everything is installed - load the libraries we are going to use
+
+```{r,include=TRUE,eval=FALSE}
+# install the libraries - DO NOT RUN
+install.packages("tidyverse")
+install.packages("ggpubr")
+install.packages("patchwork")
+
+# check libraries are installed
+library(tidyverse)
+library(ggpubr)
+library(patchwork)
+```
+
+
+## Before we start
+> **Important note**
+>
+Now we are going to refresh data frames and how to manipulate them in **base R**. Data frames - and tibbles - are the main data structure that we use when working with **tidyverse**. Most of the things that we do in tidyverse can be done with basic R, but tidyverse makes coding much more understandable. Many codes are written using tidyverse and often ChatGPT and other language models suggest codes using tidyverse. Moreover, the well known package **ggplot** (the reason many of you are here?) is developed inside tidyverse. The way tidyverse handles data structures is different from how we do it with basic R. Still, refreshing how basic R works will make us understand better the power of tidyverse.
+
+## Data frames
+- A data frame is a **two-dimensional** element.
+- Differently from the matrix, can contain **different data types**.
+- Still, each column should be of a specific data type.
+- It is generally organized by columns (that are the **variables**) and each row is an **observation** for that variable.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+### Create a data frame
+- Generally we can create a data frame from the scratch or converting other structures (like matrices)
+```{r,include=TRUE,eval=FALSE}
+# How to create a dataframe
+people <- data.frame(name=c("Leone","Julia","Luisa"),
+                     age=c(31,30,28),
+                     italian=c(T,F,T))
+
+# main check for data frames
+dim(people)
+head(people)
+colnames(people)
+```
+
+
+
+![](Y:/lalbinati/Rcourse_material_CRG_2025/images/dataframe.png)
+
+- We can access the elements in the dataframe with their **indices** or with their **colnames**
+```{r,include=TRUE,eval=FALSE}
+# these two are the same
+people[,1]
+people[,"name"]
+
+```
+
+- **Important**: for data frames, we can retrieve columns using the **dollar symbol**
+```{r,include=TRUE,eval=FALSE}
+# these two are the same
+people[,"name"]
+people$name
+
+# we can even create a new column using the dollar symbol
+people$beach_volley <- c(F,T,T)
+people
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+### Data frame manipulation
+- We manipulate data frame as if they were **vectors but in two dimensions**!
+```{r,include=TRUE,eval=FALSE}
+# these command all output the same
+people[people[,2]>=30,]
+people[people[,"age"]>=30,]
+people[people$age>=30,] # BEST OPTION! We prefer to use the dollar with data frames
+
+# let's see it line by line to understand what we are doing
+# 1. Extract the column with the $ sign
+people$age
+
+# 2. check for your condition of interest (i.e. age >= 30)
+people$age >= 30
+
+# subset the data frame to select only the rows that fulfill the condition
+people[people$age >= 30,]
+
+```
+
+![](Y:/lalbinati/Rcourse_material_CRG_2025/images/dataframe_subset.png)
+
+- Of course, we can select for multiple criterias
+```{r,include=TRUE,eval=FALSE}
+# select the people that have more or equal than 30 yo and that are not from Italy
+people[people$age >= 30 & people$italian==FALSE,]
+# select the people that are less than 30 yo or that play beachvolley
+people[people$age < 30 | people$beach_volley==TRUE,]
+
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+#### Ultra-quick HANDS-ON
+- What is the age of the italian beach-volleyball player? No manual counting, let's store the output in an object called **italian_bv_age**
+
+<details>
+  <summary>Answer</summary>
+```{r,include=TRUE,eval=FALSE}
+# select the people that play bv and that are from Italy
+italian_bv <- people[people$beach_volley == TRUE & people$italian==TRUE,]
+# extract the column with the age and assign
+italian_bv_age <- italian_bv$age
+```
+</details>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+### Selection based on patterns
+- We can also subset dataframes based on patterns
+```{r,include=TRUE,eval=FALSE}
+# We can add a new column based on where these people are located
+people$location <- c("sixth_office6","fourth_office3","fourth_office6")
+
+# How can we select the people that work at the 4th floor
+# we can select base on pattern using the grep function
+# Let's see it line by line
+people$location
+grep(pattern = "fourth",x = people$location)
+people[grep(pattern = "fourth",x = people$location),]
+fourth_floor_people <- people[grep(pattern = "fourth",x = people$location),]
+# grep has other interesting arguments, check n the help manual
+
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+# Summary exercise
+- 1. Create the script exercise_data_frame.R and save it in your tidyverse_course_2025 folder.
+- 2. Move your working directory to the tidyverse_course_202 folder.
+- 3. Let's load the dataset we'll work on. R already contains some dataset that you can load. For this exercise we load the **iris** dataset. This dataset contains measurement from three different iris plant species (setosa, virginica, versicolor), measuring width and length of petals and sepals.
+
+```{r,include=TRUE,eval=TRUE}
+# load the iris dataset - to load it we use the function data()
+data(iris)
+
+# let's check the first columns to understand this dataset
+head(iris)
+```
+
+- 4. Calculate the **mean petal length** in the dataset.
+- 5. Create a subset data frame (called **no_setosa**) that does not contain the species **setosa**.
+- 6. Now subset the no_setosa dataframe keeping only flowers with a petal length > 4 and a sepal width < 3. Assign the output to an object called **selection**. How many observation are in this data frame?
+- 7. How many virginica and versicolor are there in this **selection** dataset? Check the **table()** function.
+- 8. Create a vector called **interesting**, storing there the two character elements "setosa" and "virginica".
+- 9. Now subset the iris dataframe, selecting only the rows for which the column **Species** is found in the interesting vector.
+
+
+
+<details>
+  <summary>Answer</summary>
+```{r,include=TRUE,eval=FALSE}
+# 2. Check and change working directory
+getwd()
+setwd("home/training/Rcourse_2025")
+
+# 4. Calculate mean of petal length
+mean(iris$Petal.Length)
+
+# 5. Data frame without setosa
+no_setosa <- iris[iris$Species!="setosa",]
+nrow(no_setosa) # to know the n of observations
+
+# 6. Select for multiple conditions
+selection <- no_setosa[no_setosa$Petal.Length>4&no_setosa$Sepal.Width<3,]
+
+# 7. Counting observation in one column
+table(selection$Species)
+# other solution might be to subset the dataframe for our condition and count
+nrow(selection[selection$Species=="virginica",])
+nrow(selection[selection$Species=="versicolor",])
+
+# 8. Create a new vector
+interesting <- c("setosa","virginica")
+
+# 9. Subset iris for common elements with the interesting vectors
+subset <- iris[iris$Species%in%interesting,]
+
+```
+</details>
+
+
